@@ -12,7 +12,6 @@ class Song:
         self.filepath = filepath
         try:
             self.songtitle = id3obj['TIT2'].text[0]
-
         except:
             self.songtitle = 'Unknown'
         try:
@@ -22,7 +21,7 @@ class Song:
         try:
             self.album=id3obj['TALB'].text[0]
         except:
-            self.album = 'Unkwnown'
+            self.album = 'Unknown'
         try:
             self.rectime = int(id3obj['TDRC'].text[0])
         except:
