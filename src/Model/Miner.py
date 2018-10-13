@@ -1,10 +1,10 @@
 import os
-from Song import Song
+from src.Model.Song import Song
 from mutagen.id3 import *
 from mutagen.id3._util import *
-from Album import Album
-from Artist import Interpreter
-from DB import Database
+from src.Model.Album import Album
+from src.Model.Artist import Interpreter
+from src.Model.DB import Database
 class Miner:
     def __init__(self, path):
         if path is None:
@@ -54,6 +54,10 @@ class Miner:
         return artist
 
 if __name__ == '__main__':
+    try:
+        os.remove('/home/lautimartner/Documents/Modelado/MP3Player/database.db')
+    except:
+        pass
     miner = Miner(None)
     db = Database()
     miner.startMining(db)
@@ -61,4 +65,6 @@ if __name__ == '__main__':
     db.populatePerformersTable()
     db.populateAlbumsTable()
     db.populateSongsTable()
+
+
     print ('Todo bien')

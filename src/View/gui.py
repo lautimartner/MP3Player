@@ -5,12 +5,14 @@
 # Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
-
+import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+sys.path.append('home/lautimartner/Documents/Modelado/MP3Player/src/Model')
+from src.Model.DB import Database
+from src.Model.Miner import Miner
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MP3 Library")
+        MainWindow.setObjectName("MainWindow")
         MainWindow.resize(726, 570)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -66,17 +68,19 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.play_mus_btn)
         self.start_min_btn = QtWidgets.QPushButton(self.centralwidget)
         self.start_min_btn.setObjectName("start_min_btn")
+
+        self.start_min_btn.clicked.connect(self.loadTable)
+
         self.horizontalLayout.addWidget(self.start_min_btn)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
-
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "MP3 Player"))
         self.create_per_btn.setText(_translate("MainWindow", "Create Person"))
         self.create_grp_btn.setText(_translate("MainWindow", "Create Group"))
         self.update_btn.setText(_translate("MainWindow", "Update"))
@@ -96,6 +100,25 @@ class Ui_MainWindow(object):
         self.play_mus_btn.setText(_translate("MainWindow", "Play"))
         self.start_min_btn.setText(_translate("MainWindow", "Start Mining"))
 
+
+    def loadTable(self):
+        try:
+            miner = Miner(None)
+            db = Database()
+            miner.startMining(db)
+            db.createDB()
+            db.populatePerformersTable()
+            db.populateAlbumsTable()
+            db.populateSongsTable()
+            guitab = db.cursor.execute(db.guiTable)
+            db.dbc.commit()
+            self.rolas_table.setRowCount(0)
+            for row_number, row_data in enumerate(guitab):
+                self.rolas_table.insertRow(row_number)
+                for column_number, data in enumerate(row_data):
+                    self.rolas_table.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(data)))
+        except Exception as e:
+            print(e.with_traceback())
 
 if __name__ == "__main__":
     import sys

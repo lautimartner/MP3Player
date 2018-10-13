@@ -1,4 +1,4 @@
-from Song import Song
+from src.Model.Song import Song
 
 class Interpreter:
     def __init__(self, id_per, song):

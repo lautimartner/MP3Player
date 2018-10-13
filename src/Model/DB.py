@@ -1,7 +1,5 @@
 import sqlite3
-from Song import Song
-from Album import Album
-from Artist import Interpreter
+
 class Database:
 
     def __init__(self):
@@ -11,6 +9,9 @@ class Database:
         self.path = '/home/lautimartner/Documents/Modelado/MP3Player/database.db'
         self.dbc = sqlite3.connect(self.path)
         self.cursor = self.dbc.cursor()
+        self.guiTable = "SELECT rolas.id_rola, rolas.title, albums.name, performers.name, " \
+                        "rolas.genre, rolas.year FROM ((rolas INNER JOIN albums ON " \
+                        "rolas.id_album = albums.id_album) INNER JOIN performers ON rolas.id_performer = performers.id_performer)"
 
     def createDB(self):
         self.cursor.executescript("""
@@ -102,10 +103,12 @@ class Database:
         pass
 
     def queryManager(self, query):
-        cols = self.searchColumns(self.divideQueries(query))
-        print("SELECT * FROM guiTable WHERE %s" % cols)
-        self.cursor.execute("SELECT * FROM guiTable WHERE (?) ", (cols,))
-        self.dbc.commit()
+        if type(query) is not str:
+            raise ValueError
+        else:
+            cols = self.searchColumns(self.divideQueries(query))
+            self.cursor.execute(self.guiTable + " WHERE ? ", (cols,))
+            self.dbc.commit()
 
     def divideQueries(self, query):
         tokenList = []
@@ -125,47 +128,35 @@ class Database:
     def searchColumns(self, queryList):
         columns = ''
         for query in queryList:
-            if len(queryList) == 1:
-                columns += " OR genre LIKE " + "'%" +query+"%'"+ " OR alb_name LIKE " + \
-                "'%" +query+"%'" + " OR song_name LIKE " + "'%" + query + "%'" + ' OR perf_name LIKE '+ "'%" \
-                +query+"%'" +" OR year LIKE " + "'%" +query+"%'" + " OR genre LIKE " + "'%" +query+"%'"
-                break
-            searchi = query.index(":")
-            searchW = query[searchi + 2:]
+            try:
+                searchi = query.index(":")
+                searchW = query[searchi + 2:]
+            except:
+                pass
             if 'a:' in query:
-                columns += 'AND alb_name LIKE ' + "'%" +searchW+"%'"
+                columns += 'AND albums.name LIKE ' + "'%" +searchW+"%'"
             elif 's:' in query:
-                columns += 'AND song_name LIKE ' + "'%" + searchW + "%'"
+                columns += 'AND rolas.title LIKE ' + "'%" + searchW + "%'"
             elif 'p:' in query:
-                columns += 'AND perf_name LIKE '+ "'%" +searchW+"%'"
+                columns += 'AND performers.name LIKE '+ "'%" +searchW+"%'"
             elif 'y:' in query:
-                columns += 'AND year LIKE ' + "'%" +searchW+"%'"
+                columns += 'AND rolas.year LIKE ' + "'%" +searchW+"%'"
             elif 'g:' in query:
-                columns += 'AND genre LIKE ' + "'%" +searchW+"%'"
+                columns += 'AND rolas.genre LIKE ' + "'%" +searchW+"%'"
+            else:
+                columns += " OR rolas.genre LIKE " + "'%" +query+"%'"+ " OR albums.name LIKE " + \
+                "'%" +query+"%'" + " OR rolas.title LIKE " + "'%" + query + "%'" + ' OR performers.name LIKE '+ "'%" \
+                +query+"%'" +" OR rolas.year LIKE " + "'%" +query+"%'" + " OR rolas.genre LIKE " + "'%" +query+"%'"
+                break
         return columns[3:]
 
-    def setGUITable(self):
-        self.cursor.executescript("""
-            CREATE TABLE guiTable(
-                id_rola INTEGER,
-                song_name TEXT,
-                alb_name TEXT,
-                perf_name TEXT,
-                genre TEXT,
-                year INTEGER,
-                path TEXT,
-                PRIMARY KEY(id_rola),
-                FOREIGN KEY(id_rola, song_name, genre, year, path) REFERENCES rolas(id_rola, title, genre, year, path),
-                FOREIGN KEY(alb_name) REFERENCES albums(name),
-                FOREIGN KEY(perf_name) REFERENCES performers(name)
-            );
-            
-            INSERT INTO guiTable(id_rola, song_name, genre, year, path) SELECT id_rola, title, genre, year, path FROM rolas;
-            INSERT INTO guiTable(alb_name) SELECT name FROM albums;
-            INSERT INTO guiTable(perf_name) SELECT name FROM performers;                
-        """)
+    def executeGUITable(self):
+        guitab = self.cursor.execute("?", (self.guiTable,))
         self.dbc.commit()
+        return guitab
 
 if __name__ == '__main__':
-
+    db = Database()
+    query = "y: 2011"
+    db.queryManager(query)
     print ('Todo bien')
