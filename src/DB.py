@@ -9,7 +9,7 @@ class Database:
         self.path = '/home/lautimartner/Documents/Modelado/MP3Player/database.sqlite'
         self.dbc = sqlite3.connect(self.path)
         self.cursor = self.dbc.cursor()
-        self.guiTable = "SELECT rolas.title, albums.name, performers.name, " \
+        self.guiTable = "SELECT rolas.id_rola, rolas.title, albums.name, performers.name, " \
                         "rolas.genre, rolas.year FROM ((rolas INNER JOIN albums ON " \
                         "rolas.id_album = albums.id_album) INNER JOIN performers ON rolas.id_performer = performers.id_performer)"
 
