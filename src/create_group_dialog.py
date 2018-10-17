@@ -54,24 +54,44 @@ class Ui_create_group_dialog(object):
         self.gridLayout.addWidget(self.buttonBox, 3, 0, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
 
+        self.start_date.addItems(self.populateComboBox())
+        self.end_date.addItems(self.populateComboBox())
+
         self.retranslateUi(create_group_dialog)
         self.buttonBox.rejected.connect(create_group_dialog.reject)
         self.buttonBox.accepted.connect(create_group_dialog.accept)
         QtCore.QMetaObject.connectSlotsByName(create_group_dialog)
+        self.buttonBox.accepted.connect(self.retrieveData)
+
 
     def retranslateUi(self, create_group_dialog):
         _translate = QtCore.QCoreApplication.translate
         create_group_dialog.setWindowTitle(_translate("create_group_dialog", "Create Group"))
         self.label.setText(_translate("create_group_dialog", "Name"))
         self.label_2.setText(_translate("create_group_dialog", "Start Date"))
-        self.label_3.setText(_translate("create_group_dialog", "End Data"))
+        self.label_3.setText(_translate("create_group_dialog", "End Date"))
 
+    def populateComboBox(self):
+        i = 2018
+        year_list = []
+        year_list.append("Present")
+        while i >= 1600:
+            year_list.append(str(i))
+            i-=1
+        return year_list
+
+    def retrieveData(self):
+        name = str(self.group_name.text())
+        start_date = str(self.start_date.currentText())
+        end_date = str(self.end_date.currentText())
+        return (name, start_date, end_date)
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     create_group_dialog = QtWidgets.QDialog()
     ui = Ui_create_group_dialog()
+    ui.populateComboBox()
     ui.setupUi(create_group_dialog)
     create_group_dialog.show()
     sys.exit(app.exec_())

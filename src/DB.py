@@ -94,16 +94,16 @@ class Database:
     def populatePerformersTable(self):
         for interpreter in self.interDic:
             inter = self.interDic[interpreter]
-            interInfo = (inter.id_per, 0, inter.name)
+            interInfo = (inter.id_per, 2, inter.name)
             self.cursor.execute("insert into performers values(?,?,?)", interInfo)
         self.dbc.commit()
 
     def populatePersonsTable(self, stage_nm, real_nm, birth_dt, death_dt):
-        self.cursor.execute("INSERT INTO persons (?,?,?,?)", (stage_nm,real_nm, birth_dt, death_dt))
+        self.cursor.execute("INSERT INTO persons VALUES(?,?,?,?,?)", (None, stage_nm,real_nm, birth_dt, death_dt))
         self.dbc.commit()
 
     def populateGroupsTable(self, name, start_date, end_date):
-        self.cursor.execute("INSERT INTO groups (?,?,?)", (name, start_date, end_date))
+        self.cursor.execute("INSERT INTO groups VALUES (?,?,?,?)", (None, name, start_date, end_date))
         self.dbc.commit()
 
     def queryManager(self, query):

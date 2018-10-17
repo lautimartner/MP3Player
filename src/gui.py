@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-
+#! /usr/bin/env python
+#! /usr/bin/python3.6
 # Form implementation generated from reading ui file 'untitled.ui'
-#
 # Created by: PyQt5 UI code generator 5.10.1
-#
-# WARNING! All changes made in this file will be lost!
+
 import vlc, sqlite3
 from PyQt5 import QtCore, QtGui, QtWidgets
 from DB import Database
 from Miner import Miner
+from create_person_dialog import Ui_create_pers
+from create_group_dialog import Ui_create_group_dialog
 global miner, db
 miner = Miner(None)
 db = Database()
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         self.playing = False
@@ -86,13 +88,16 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        #Estos son mis esuchas/observadores
+        #Estos son mis escuchas/observadores
         self.start_min_btn.clicked.connect(self.showSongs)
         self.search_box.returnPressed.connect(self.search_btn.click)
         self.search_btn.clicked.connect(self.search)
         self.rolas_table.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
         self.play_mus_btn.clicked.connect(self.play)
         self.stop_btn.clicked.connect(self.stop)
+        self.create_grp_btn.clicked.connect(self.createGroup)
+        self.create_per_btn.clicked.connect(self.createPerson)
+
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -155,10 +160,23 @@ class Ui_MainWindow(object):
 
 
     def createGroup(self):
-        pass
+        create_group_dialog = QtWidgets.QDialog()
+        ui = Ui_create_group_dialog()
+        ui.populateComboBox()
+        ui.setupUi(create_group_dialog)
+        create_group_dialog.exec()
+        create_group_dialog.show()
+        group = ui.retrieveData()
+        db.populateGroupsTable(group[0], group[1], group[2])
 
     def createPerson(self):
-        pass
+        create_pers = QtWidgets.QDialog()
+        ui = Ui_create_pers()
+        ui.setupUi(create_pers)
+        create_pers.exec_()
+        create_pers.show()
+        person = ui.retrieveData()
+        db.populatePersonsTable(person[0], person[1], person[2], person[3])
 
 if __name__ == "__main__":
     #try:

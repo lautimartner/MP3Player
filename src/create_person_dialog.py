@@ -73,6 +73,7 @@ class Ui_create_pers(object):
         self.add_person.accepted.connect(create_pers.accept)
         self.add_person.rejected.connect(create_pers.reject)
         QtCore.QMetaObject.connectSlotsByName(create_pers)
+        self.add_person.accepted.connect(self.retrieveData)
 
     def retranslateUi(self, create_pers):
         _translate = QtCore.QCoreApplication.translate
@@ -81,6 +82,14 @@ class Ui_create_pers(object):
         self.label_2.setText(_translate("create_pers", "Real Name"))
         self.label_3.setText(_translate("create_pers", "Birth Date"))
         self.label_4.setText(_translate("create_pers", "Death Date"))
+
+    def retrieveData(self):
+        stagename = self.lineEdit_4.text()
+        realname = self.lineEdit_3.text()
+        birthdate = self.lineEdit.text()
+        deathdate = self.lineEdit_2.text()
+        return (stagename, realname, birthdate, deathdate)
+
 
 
 if __name__ == "__main__":
