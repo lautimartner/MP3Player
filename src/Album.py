@@ -1,5 +1,5 @@
 
-from src.Model.Song import Song
+from Song import Song
 class Album:
     def __init__(self, song, id, dirpath):
         self.id_album = id

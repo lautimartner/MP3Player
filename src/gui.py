@@ -5,13 +5,17 @@
 # Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
-import sys
+import vlc, sqlite3
 from PyQt5 import QtCore, QtGui, QtWidgets
-sys.path.append('home/lautimartner/Documents/Modelado/MP3Player/src/Model')
-from src.Model.DB import Database
-from src.Model.Miner import Miner
+from DB import Database
+from Miner import Miner
+global miner, db
+miner = Miner(None)
+db = Database()
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+        self.playing = False
+        self.player = None
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(726, 570)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -31,7 +35,7 @@ class Ui_MainWindow(object):
         self.update_btn = QtWidgets.QPushButton(self.centralwidget)
         self.update_btn.setObjectName("update_btn")
         self.horizontalLayout_2.addWidget(self.update_btn)
-        self.search_box = QtWidgets.QTextEdit(self.centralwidget)
+        self.search_box = QtWidgets.QLineEdit(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Ignored)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -44,9 +48,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.search_btn)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.rolas_table = QtWidgets.QTableWidget(self.centralwidget)
-        self.rolas_table.setMinimumSize(QtCore.QSize(21, 440))
-        self.rolas_table.setRowCount(1)
-        self.rolas_table.setColumnCount(6)
+        self.rolas_table.setMinimumSize(QtCore.QSize(21, 10))
+        self.rolas_table.setRowCount(0)
+        self.rolas_table.setColumnCount(5)
         self.rolas_table.setObjectName("rolas_table")
         item = QtWidgets.QTableWidgetItem()
         self.rolas_table.setHorizontalHeaderItem(0, item)
@@ -58,25 +62,37 @@ class Ui_MainWindow(object):
         self.rolas_table.setHorizontalHeaderItem(3, item)
         item = QtWidgets.QTableWidgetItem()
         self.rolas_table.setHorizontalHeaderItem(4, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.rolas_table.setHorizontalHeaderItem(5, item)
+        header = self.rolas_table.horizontalHeader()
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
         self.verticalLayout.addWidget(self.rolas_table)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.play_mus_btn = QtWidgets.QPushButton(self.centralwidget)
         self.play_mus_btn.setObjectName("play_mus_btn")
         self.horizontalLayout.addWidget(self.play_mus_btn)
+        self.stop_btn = QtWidgets.QPushButton(self.centralwidget)
+        self.stop_btn.setObjectName("stop_btn")
+        self.horizontalLayout.addWidget(self.stop_btn)
         self.start_min_btn = QtWidgets.QPushButton(self.centralwidget)
         self.start_min_btn.setObjectName("start_min_btn")
-
-        self.start_min_btn.clicked.connect(self.loadTable)
-
         self.horizontalLayout.addWidget(self.start_min_btn)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+        #Estos son mis esuchas/observadores
+        self.start_min_btn.clicked.connect(self.showSongs)
+        self.search_box.returnPressed.connect(self.search_btn.click)
+        self.search_btn.clicked.connect(self.search)
+        self.rolas_table.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+        self.play_mus_btn.clicked.connect(self.play)
+        self.stop_btn.clicked.connect(self.stop)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -86,46 +102,73 @@ class Ui_MainWindow(object):
         self.update_btn.setText(_translate("MainWindow", "Update"))
         self.search_btn.setText(_translate("MainWindow", "Search"))
         item = self.rolas_table.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "Song ID"))
-        item = self.rolas_table.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Title"))
-        item = self.rolas_table.horizontalHeaderItem(2)
+        item = self.rolas_table.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Album"))
-        item = self.rolas_table.horizontalHeaderItem(3)
+        item = self.rolas_table.horizontalHeaderItem(2)
         item.setText(_translate("MainWindow", "Artist"))
-        item = self.rolas_table.horizontalHeaderItem(4)
+        item = self.rolas_table.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "Genre"))
-        item = self.rolas_table.horizontalHeaderItem(5)
+        item = self.rolas_table.horizontalHeaderItem(4)
         item.setText(_translate("MainWindow", "Year"))
-        self.play_mus_btn.setText(_translate("MainWindow", "Play"))
-        self.start_min_btn.setText(_translate("MainWindow", "Start Mining"))
+        self.play_mus_btn.setText(_translate("MainWindow", "Play/Pause"))
+        self.stop_btn.setText(_translate("MainWindow", "Stop"))
+        self.start_min_btn.setText(_translate("MainWindow", "Show Songs"))
 
 
-    def loadTable(self):
+    def updateTable(self, guitab):
+        self.rolas_table.setRowCount(0)
+        for row_number, row_data in enumerate(guitab):
+            self.rolas_table.insertRow(row_number)
+            for column_number, data in enumerate(row_data):
+                self.rolas_table.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(data)))
+
+    def play(self):
+        song = self.rolas_table.currentRow() + 1
+        filepath = db.cursor.execute("select path from rolas where id_rola = " + str(song)).fetchall()
+        if not self.playing:
+            self.player = vlc.MediaPlayer(filepath[0][0])
+            self.player.play()
+            self.playing = True
+        elif self.playing:
+            self.player.pause()
+
+    def stop(self):
+        if self.playing:
+            self.player.stop()
+            self.playing = False
+
+    def search(self):
+        sQuery = self.search_box.text()
+        if sQuery is '':
+            self.updateTable(db.executeGUITable())
+        else:
+            self.search_box.clear()
+            guitab = db.queryManager(str(sQuery))
+            self.updateTable(guitab)
+
+    def showSongs(self):
         try:
-            miner = Miner(None)
-            db = Database()
-            miner.startMining(db)
-            db.createDB()
-            db.populatePerformersTable()
-            db.populateAlbumsTable()
-            db.populateSongsTable()
-            guitab = db.cursor.execute(db.guiTable)
-            db.dbc.commit()
-            self.rolas_table.setRowCount(0)
-            for row_number, row_data in enumerate(guitab):
-                self.rolas_table.insertRow(row_number)
-                for column_number, data in enumerate(row_data):
-                    self.rolas_table.setItem(row_number, column_number, QtWidgets.QTableWidgetItem(str(data)))
-        except Exception as e:
-            print(e.with_traceback())
+            self.updateTable(db.executeGUITable())
+        except sqlite3.OperationalError:
+            db.setUpDB(miner)
+
+
+    def createGroup(self):
+        pass
+
+    def createPerson(self):
+        pass
 
 if __name__ == "__main__":
-    import sys
+    #try:
+    import sys, os
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
+    #except Exception as e:
+     #   print(e.__doc__)
 

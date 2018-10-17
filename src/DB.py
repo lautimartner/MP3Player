@@ -1,15 +1,15 @@
 import sqlite3
-
+import os, sys
 class Database:
 
     def __init__(self):
         self.songList = []
         self.albumDic = {}
         self.interDic = {}
-        self.path = '/home/lautimartner/Documents/Modelado/MP3Player/database.db'
+        self.path = '/home/lautimartner/Documents/Modelado/MP3Player/database.sqlite'
         self.dbc = sqlite3.connect(self.path)
         self.cursor = self.dbc.cursor()
-        self.guiTable = "SELECT rolas.id_rola, rolas.title, albums.name, performers.name, " \
+        self.guiTable = "SELECT rolas.title, albums.name, performers.name, " \
                         "rolas.genre, rolas.year FROM ((rolas INNER JOIN albums ON " \
                         "rolas.id_album = albums.id_album) INNER JOIN performers ON rolas.id_performer = performers.id_performer)"
 
@@ -67,8 +67,7 @@ class Database:
                 PRIMARY KEY ( id_person , id_group ) ,
                 FOREIGN KEY ( id_person ) REFERENCES persons ( id_person ) ,
                 FOREIGN KEY ( id_group ) REFERENCES groups ( id_group )
-            );
-            
+            ); 
         """)
         self.dbc.commit()
 
@@ -99,16 +98,22 @@ class Database:
             self.cursor.execute("insert into performers values(?,?,?)", interInfo)
         self.dbc.commit()
 
-    def populatePersonsTable(self):
-        pass
+    def populatePersonsTable(self, stage_nm, real_nm, birth_dt, death_dt):
+        self.cursor.execute("INSERT INTO persons (?,?,?,?)", (stage_nm,real_nm, birth_dt, death_dt))
+        self.dbc.commit()
+
+    def populateGroupsTable(self, name, start_date, end_date):
+        self.cursor.execute("INSERT INTO groups (?,?,?)", (name, start_date, end_date))
+        self.dbc.commit()
 
     def queryManager(self, query):
         if type(query) is not str:
             raise ValueError
         else:
             cols = self.searchColumns(self.divideQueries(query))
-            self.cursor.execute(self.guiTable + " WHERE ? ", (cols,))
+            result = self.cursor.execute(self.guiTable + " WHERE " + cols)
             self.dbc.commit()
+        return result
 
     def divideQueries(self, query):
         tokenList = []
@@ -134,29 +139,37 @@ class Database:
             except:
                 pass
             if 'a:' in query:
-                columns += 'AND albums.name LIKE ' + "'%" +searchW+"%'"
+                columns += ' AND albums.name LIKE ' + "'%" +searchW+"%'"
             elif 's:' in query:
-                columns += 'AND rolas.title LIKE ' + "'%" + searchW + "%'"
+                columns += ' AND rolas.title LIKE ' + "'%" + searchW + "%'"
             elif 'p:' in query:
-                columns += 'AND performers.name LIKE '+ "'%" +searchW+"%'"
+                columns += ' AND performers.name LIKE '+ "'%" +searchW+"%'"
             elif 'y:' in query:
                 columns += 'AND rolas.year LIKE ' + "'%" +searchW+"%'"
             elif 'g:' in query:
-                columns += 'AND rolas.genre LIKE ' + "'%" +searchW+"%'"
+                columns += ' AND rolas.genre LIKE ' + "'%" +searchW+"%'"
             else:
                 columns += " OR rolas.genre LIKE " + "'%" +query+"%'"+ " OR albums.name LIKE " + \
                 "'%" +query+"%'" + " OR rolas.title LIKE " + "'%" + query + "%'" + ' OR performers.name LIKE '+ "'%" \
                 +query+"%'" +" OR rolas.year LIKE " + "'%" +query+"%'" + " OR rolas.genre LIKE " + "'%" +query+"%'"
                 break
-        return columns[3:]
+        return columns[4:]
 
     def executeGUITable(self):
-        guitab = self.cursor.execute("?", (self.guiTable,))
+        guitab = self.cursor.execute(self.guiTable)
         self.dbc.commit()
         return guitab
+
+    def setUpDB(self, miner):
+        miner.startMining(self)
+        self.createDB()
+        self.populatePerformersTable()
+        self.populateAlbumsTable()
+        self.populateSongsTable()
+
 
 if __name__ == '__main__':
     db = Database()
     query = "y: 2011"
-    db.queryManager(query)
+    print(db.queryManager(query))
     print ('Todo bien')
