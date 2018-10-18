@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-#! /usr/bin/env python
+#! /usr/bin/env python3
 #! /usr/bin/python3.6
 # Form implementation generated from reading ui file 'untitled.ui'
 # Created by: PyQt5 UI code generator 5.10.1
