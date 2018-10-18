@@ -35,5 +35,3 @@ class Song:
         except:
             self.trackNo = 0
 
-if __name__ == '__main__':
-    print('Todo bien')

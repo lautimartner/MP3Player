@@ -14,11 +14,9 @@ class Miner:
 
     def startMining(self, dao):
         albID = 0
-        i = 0
         interID = 0
         for dirpath, dirs, files in os.walk(self.path, topdown=True):
             for file in files:
-                i+=1
                 filepath = dirpath + os.sep + file
                 if filepath.endswith(".mp3"):
                     try:
@@ -40,7 +38,6 @@ class Miner:
                         print(e)
                 else:
                     continue
-        print (i)
 
     def createSong(self, id3obj, filepath):
         song = Song(id3obj, filepath)
@@ -53,8 +50,3 @@ class Miner:
     def createArtist(self, id_art, song ):
         artist = Interpreter(id_art, song)
         return artist
-
-
-
-if __name__ == '__main__':
-    print ('Todo bien')

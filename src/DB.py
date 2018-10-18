@@ -166,10 +166,3 @@ class Database:
         self.populatePerformersTable()
         self.populateAlbumsTable()
         self.populateSongsTable()
-
-
-if __name__ == '__main__':
-    db = Database()
-    query = "y: 2011"
-    print(db.queryManager(query))
-    print ('Todo bien')

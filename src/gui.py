@@ -4,7 +4,7 @@
 # Form implementation generated from reading ui file 'untitled.ui'
 # Created by: PyQt5 UI code generator 5.10.1
 
-import vlc, sqlite3
+import vlc, sqlite3, _thread
 from PyQt5 import QtCore, QtGui, QtWidgets
 from DB import Database
 from Miner import Miner
@@ -83,6 +83,13 @@ class Ui_MainWindow(object):
         self.stop_btn = QtWidgets.QPushButton(self.centralwidget)
         self.stop_btn.setObjectName("stop_btn")
         self.horizontalLayout.addWidget(self.stop_btn)
+
+        self.pb = QtWidgets.QProgressBar(self.centralwidget)
+        self.pb.setProperty("value", 0)
+        self.pb.setObjectName("pb")
+        self.horizontalLayout.addWidget(self.pb)
+
+
         self.start_min_btn = QtWidgets.QPushButton(self.centralwidget)
         self.start_min_btn.setObjectName("start_min_btn")
         self.horizontalLayout.addWidget(self.start_min_btn)
@@ -101,7 +108,6 @@ class Ui_MainWindow(object):
         self.stop_btn.clicked.connect(self.stop)
         self.create_grp_btn.clicked.connect(self.createGroup)
         self.create_per_btn.clicked.connect(self.createPerson)
-
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -143,6 +149,7 @@ class Ui_MainWindow(object):
             self.player = vlc.MediaPlayer(filepath[0][0])
             self.player.play()
             self.playing = True
+            _thread.start_new_thread(self.progress,())
         elif self.playing:
             self.player.pause()
 
@@ -150,6 +157,7 @@ class Ui_MainWindow(object):
         if self.playing:
             self.player.stop()
             self.playing = False
+            self.pb.setValue(0)
 
     def search(self):
         sQuery = self.search_box.text()
@@ -165,6 +173,7 @@ class Ui_MainWindow(object):
             self.updateTable(db.executeGUITable())
         except sqlite3.OperationalError:
             db.setUpDB(miner)
+            self.updateTable(db.executeGUITable())
 
 
     def createGroup(self):
@@ -186,15 +195,21 @@ class Ui_MainWindow(object):
         person = ui.retrieveData()
         db.populatePersonsTable(person[0], person[1], person[2], person[3])
 
+    def progress(self):
+        duration = self.player.get_position()
+        while  duration < 1:
+            self.pb.setValue(self.player.get_position()*100)
+
+
 if __name__ == "__main__":
-    #try:
-    import sys, os
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
-    #except Exception as e:
-     #   print(e.__doc__)
+    try:
+        import sys, os
+        app = QtWidgets.QApplication(sys.argv)
+        MainWindow = QtWidgets.QMainWindow()
+        ui = Ui_MainWindow()
+        ui.setupUi(MainWindow)
+        MainWindow.show()
+        sys.exit(app.exec_())
+    except Exception as e:
+        print(e.__doc__)
 
