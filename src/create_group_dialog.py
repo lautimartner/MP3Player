@@ -9,6 +9,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_create_group_dialog(object):
+    """Clase que representa el dialogo para crear grupos en gui"""
     def setupUi(self, create_group_dialog):
         create_group_dialog.setObjectName("create_group_dialog")
         create_group_dialog.resize(249, 190)
@@ -72,6 +73,7 @@ class Ui_create_group_dialog(object):
         self.label_3.setText(_translate("create_group_dialog", "End Date"))
 
     def populateComboBox(self):
+        """Llena el combo box con los años posibles"""
         i = 2018
         year_list = []
         year_list.append("Present")
@@ -81,6 +83,7 @@ class Ui_create_group_dialog(object):
         return year_list
 
     def retrieveData(self):
+        """Recupera los datos de los campos de texto de entrada del usuario"""
         name = str(self.group_name.text())
         start_date = str(self.start_date.currentText())
         end_date = str(self.end_date.currentText())

@@ -9,6 +9,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_create_pers(object):
+    """Clase que representa el dialogo para crear personas en gui"""
     def setupUi(self, create_pers):
         create_pers.setObjectName("create_pers")
         create_pers.resize(300, 207)
@@ -84,6 +85,7 @@ class Ui_create_pers(object):
         self.label_4.setText(_translate("create_pers", "Death Date"))
 
     def retrieveData(self):
+        """Recupera los datos de entrada que puso el usuario"""
         stagename = self.lineEdit_4.text()
         realname = self.lineEdit_3.text()
         birthdate = self.lineEdit.text()

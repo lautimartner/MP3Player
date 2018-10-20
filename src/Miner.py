@@ -6,6 +6,9 @@ from Album import Album
 from Artist import Interpreter
 from DB import Database
 class Miner:
+    """
+    Clase que mina los archivos MP3 del directorio indicado
+    """
     def __init__(self, path):
         if path is None:
             self.path='/home/lautimartner/Music'
@@ -32,7 +35,7 @@ class Miner:
                             newArtist = self.createArtist(interID, newSong)
                             dao.interDic[newSong.interpreter]=newArtist
                             interID += 1
-                    except ID3NoHeaderError as e:
+                    except ID3NoHeaderError:
                         continue
                     except Exception as e:
                         print(e)
@@ -40,13 +43,16 @@ class Miner:
                     continue
 
     def createSong(self, id3obj, filepath):
+        """Crea un objeto cancion"""
         song = Song(id3obj, filepath)
         return song
 
     def createAlbum(self, song, id, dirpath):
+        """Crea un objeto album"""
         album = Album(song, id, dirpath)
         return album
 
     def createArtist(self, id_art, song ):
+        """Crea un objeto artista"""
         artist = Interpreter(id_art, song)
         return artist

@@ -1,6 +1,9 @@
 import sqlite3
 import os, sys
 class Database:
+    """
+    Clase que representa una base de datos y todas las acciones que esten relacionadas a ella en este proyecto
+    """
 
     def __init__(self):
         self.songList = []
@@ -14,6 +17,10 @@ class Database:
                         "rolas.id_album = albums.id_album) INNER JOIN performers ON rolas.id_performer = performers.id_performer)"
 
     def createDB(self):
+        """
+        Crea una base de datos con el esquema acordado por la clase
+        :return:
+        """
         self.cursor.executescript("""
             CREATE TABLE types (
             id_type INTEGER PRIMARY KEY ,
@@ -73,6 +80,9 @@ class Database:
 
 
     def populateSongsTable(self):
+        """
+        Agrega canciones a la tabla de canciones
+        """
         for songs in self.songList:
             try:
                 songInfo = (None,self.interDic[songs.interpreter].id_per, self.albumDic[songs.album].id_album, songs.filepath, songs.songtitle, songs.trackNo, songs.rectime, songs.genre)
@@ -82,6 +92,7 @@ class Database:
         self.dbc.commit()
 
     def populateAlbumsTable(self):
+        """Agrega albums a la tabla de discos"""
         try:
             for album in self.albumDic:
                 alb = self.albumDic[album]
@@ -92,6 +103,7 @@ class Database:
             print (e)
 
     def populatePerformersTable(self):
+        """Agrega interpretes a la tabla de interpretes"""
         for interpreter in self.interDic:
             inter = self.interDic[interpreter]
             interInfo = (inter.id_per, 2, inter.name)
@@ -99,14 +111,22 @@ class Database:
         self.dbc.commit()
 
     def populatePersonsTable(self, stage_nm, real_nm, birth_dt, death_dt):
+        """Agrega personas a la tabla de personas"""
         self.cursor.execute("INSERT INTO persons VALUES(?,?,?,?,?)", (None, stage_nm,real_nm, birth_dt, death_dt))
         self.dbc.commit()
 
     def populateGroupsTable(self, name, start_date, end_date):
+        """Agrega grupos a la tabla de grupos"""
         self.cursor.execute("INSERT INTO groups VALUES (?,?,?,?)", (None, name, start_date, end_date))
         self.dbc.commit()
 
+    def populateInGroupTable(self, person_id, group_id):
+        """Agrega entrada a la tabla in group"""
+        self.cursor.execute("INSERT INTO in_group VALUES(?,?)", (person_id, group_id))
+        self.dbc.commit()
+
     def queryManager(self, query):
+        """Traduce una consulta tal comoa la escribe el usuario a una consulta a la base de datos"""
         if type(query) is not str:
             raise ValueError
         else:
@@ -116,6 +136,7 @@ class Database:
         return result
 
     def divideQueries(self, query):
+        """Divide las consultas en fichas o tokens"""
         tokenList = []
         token = ''
         i = 0
@@ -131,6 +152,7 @@ class Database:
         return tokenList
 
     def searchColumns(self, queryList):
+        """Agrega campos de busqueda en la consulta traduciendo las fichas o tokens"""
         columns = ''
         for query in queryList:
             try:
@@ -156,11 +178,15 @@ class Database:
         return columns[4:]
 
     def executeGUITable(self):
+        """
+        Regresa la tabla que se le muestra al usuario haciendo un inner join
+        """
         guitab = self.cursor.execute(self.guiTable)
         self.dbc.commit()
         return guitab
 
     def setUpDB(self, miner):
+        """Arma la base de datos, minando las canciones del diretorio indicado"""
         miner.startMining(self)
         self.createDB()
         self.populatePerformersTable()
