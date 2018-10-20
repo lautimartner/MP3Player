@@ -21,3 +21,6 @@ Para hacer busquedas se utiliza el siguiente lenguaje:
 * `y: [year]`
 * `g: [genre name]`
 * Para buscar varios campos a la vez con una conjuncion se utiliza `|`entre cada busqueda (notese la ironia), sin espacios antes de cada `|`. Por ejemplo `a: The Beatles| p: Help| s: Help`.
+
+## Bugs
+* `Segmentation Fault`. Culpa de PyQt5
